@@ -5,49 +5,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"organizer/internal/organizer"
+	"organizer/internal/utils"
 )
 
 type MoveTask struct {
 	OldPath string
 	NewPath string
 	cat string
-}
-func reverseMap(src map[string][]string) map[string]string {
-    res := make(map[string]string)
-    for category, exts := range src {
-        for _, ext := range exts {
-            res[ext] = category
-        }
-    }
-    return res
-}
-
-/// Returns unique path for file in [dir].
-func getUniquePath(dir, name string) string {
-	ext := filepath.Ext(name)
-	base := strings.TrimSuffix(name, ext)
-	targetPath := filepath.Join(dir, name)
-	
-	counter := 1
-	for {
-		// Проверяем, существует ли файл
-		if _, err := os.Stat(targetPath); os.IsNotExist(err) {
-			break // Путь свободен!
-		}
-		// Если занят — пробуем новое имя: base (1).ext
-		newName := fmt.Sprintf("%s (%d)%s", base, counter, ext)
-		targetPath = filepath.Join(dir, newName)
-		counter++
-	}
-	return targetPath
-}
-
-var extensions = map[string][]string {
-	"Pictures": {".jpg", ".png", ".gif", ".jpeg"},
-	"Music": {".mp3", ".wav", ".flac", ".ogg"},
-	"Media": {".mp4", ".mov", ".avi", ".mkv"},
-	"Docs": {".pdf", ".docx", ".txt", ".xlsx"},
-	"Archive":  {".zip", ".rar", ".7z", ".tar", ".gz"},
 }
 
 func main() {
@@ -58,7 +24,7 @@ func main() {
 	basePath := home + string(filepath.Separator)
 	/// TODO: config.json
 	dirToSort := basePath + "Downloads"
-    fastMap := reverseMap(extensions);
+    fastMap := organizer.ExtensionToCategory();
 
 	if len(os.Args) > 1 {
 		dirToSort = os.Args[1]
@@ -93,7 +59,7 @@ func main() {
 
 			oldPath := filepath.Join(dirToSort, fileName)
 			catPath := filepath.Join(basePath + category);
-            newPath := getUniquePath(catPath, fileName)
+            newPath := utils.GetUniquePath(catPath, fileName)
 			
 			tasks = append(tasks, MoveTask{
 				OldPath: oldPath, 
