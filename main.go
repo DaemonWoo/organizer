@@ -6,8 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"organizer/internal/organizer"
-	"organizer/internal/utils"
+	"organizer/utils"
 )
 
 type MoveTask struct {
@@ -72,9 +71,7 @@ func main() {
 		dirToSort = filepath.Join(home, "Downloads")
 	}
 
-	/// TODO: config.json
-	
-    fastMap := organizer.ExtensionToCategory();
+	fastMap := ExtensionToCategory();
 
 	if len(os.Args) > 1 {
 		dirToSort = os.Args[1]
