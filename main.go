@@ -16,14 +16,64 @@ type MoveTask struct {
 	cat string
 }
 
+var presetDirs = map[string]string {
+	"1": "Downloads",
+	"2": "Desktop",
+	"3": "Documents",
+}
+
+func selectDirectory() (string) {
+	fmt.Println("\n📁 Выберите папку для сортировки:")
+	fmt.Println("   0) Ввести свой путь")
+
+	for key, value := range presetDirs {
+		fmt.Printf("   %s) ~/ %s\n", key, value)
+	}
+	for {
+		fmt.Print("\nВаш выбор: ")
+
+		var input string
+		fmt.Scanln(&input)
+		
+		input = strings.TrimSpace(input)
+
+		if input == "0" {
+			fmt.Print("Введите полный путь: ")
+			var customPath string
+			fmt.Scanln(&customPath)
+			customPath = strings.TrimSpace(customPath)
+			
+			if strings.HasPrefix(customPath, "~") {
+				home, err := os.UserHomeDir()
+				if err == nil {
+					customPath = filepath.Join(home, customPath[1:])
+				}
+			}
+			return customPath
+		}
+
+		if dirName, ok := presetDirs[input]; ok {
+			home, _ := os.UserHomeDir()
+			return filepath.Join(home, dirName)
+		}
+
+		fmt.Println("❌ Неверный выбор")
+		continue
+	}
+	
+}
 func main() {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		home = "/tmp"
 	}
-	basePath := home + string(filepath.Separator)
+	dirToSort := selectDirectory()
+	if dirToSort == "" {
+		dirToSort = filepath.Join(home, "Downloads")
+	}
+
 	/// TODO: config.json
-	dirToSort := basePath + "Downloads"
+	
     fastMap := organizer.ExtensionToCategory();
 
 	if len(os.Args) > 1 {
@@ -54,11 +104,8 @@ func main() {
         ext := strings.ToLower(filepath.Ext(fileName))
 
         if category, ok := fastMap[ext]; ok {
-            
-            
-
 			oldPath := filepath.Join(dirToSort, fileName)
-			catPath := filepath.Join(basePath + category);
+			catPath := filepath.Join(home, category);
             newPath := utils.GetUniquePath(catPath, fileName)
 			
 			tasks = append(tasks, MoveTask{
@@ -67,7 +114,6 @@ func main() {
 				cat: category,
 			})
 			stats[category]++
-
             
         } else {
 			fmt.Printf("⏩ Пропущен: %s\n", fileName)
@@ -97,7 +143,7 @@ func main() {
 	fmt.Println("\n🚀 Начинаю работу...")
 
 	for _, t := range tasks {
-		catPath := filepath.Join(basePath + t.cat)
+		catPath := filepath.Join(home, t.cat)
 		os.MkdirAll(catPath, 0755)
 
 		err := os.Rename(t.OldPath, t.NewPath)
