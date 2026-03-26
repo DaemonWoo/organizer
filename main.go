@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"organizer/menu"
 	"organizer/utils"
 )
 
@@ -21,54 +22,17 @@ var presetDirs = map[string]string {
 	"3": "Documents",
 }
 
-func selectDirectory() (string) {
-	fmt.Println("\n📁 Выберите папку для сортировки:")
-	fmt.Println("   0) Ввести свой путь")
-
-	for key, value := range presetDirs {
-		fmt.Printf("   %s) ~/ %s\n", key, value)
-	}
-	for {
-		fmt.Print("\nВаш выбор: ")
-
-		var input string
-		fmt.Scanln(&input)
-		
-		input = strings.TrimSpace(input)
-
-		if input == "0" {
-			fmt.Print("Введите полный путь: ")
-			var customPath string
-			fmt.Scanln(&customPath)
-			customPath = strings.TrimSpace(customPath)
-			
-			if strings.HasPrefix(customPath, "~") {
-				home, err := os.UserHomeDir()
-				if err == nil {
-					customPath = filepath.Join(home, customPath[1:])
-				}
-			}
-			return customPath
-		}
-
-		if dirName, ok := presetDirs[input]; ok {
-			home, _ := os.UserHomeDir()
-			return filepath.Join(home, dirName)
-		}
-
-		fmt.Println("❌ Неверный выбор")
-		continue
-	}
-	
-}
 func main() {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		home = "/tmp"
 	}
-	dirToSort := selectDirectory()
+	dirToSort := menu.SelectDirectory()
 	if dirToSort == "" {
-		dirToSort = filepath.Join(home, "Downloads")
+		fmt.Println("No directory selected, exiting...", dirToSort)
+		return
+	} else {
+		dirToSort = filepath.Join(home, dirToSort)
 	}
 
 	fastMap := ExtensionToCategory();
